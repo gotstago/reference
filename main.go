@@ -24,7 +24,9 @@ func main() {
 	http.HandleFunc("/weather/", func(w http.ResponseWriter, r *http.Request) {
 		city := strings.SplitN(r.URL.Path, "/", 3)[2]
 		fmt.Fprintf(logFile, "%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-		data, err := query(city)
+		fmt.Fprintf(os.Stdout, "%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+		//data, err := query(city)
+		data, err := openWeatherMap{}.temperature(city)
 		if err != nil {
 			fmt.Fprintf(logFile, "%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -65,4 +67,32 @@ type weatherData struct {
 	Main struct {
 		Kelvin float64 `json:"temp"`
 	} `json:"main"`
+}
+
+type weatherProvider interface {
+	temperature(city string) (float64, error) // in Kelvin, naturally
+}
+
+type openWeatherMap struct{}
+
+func (w openWeatherMap) temperature(city string) (float64, error) {
+	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?q=" + city)
+	if err != nil {
+		return 0, err
+	}
+
+	defer resp.Body.Close()
+
+	var d struct {
+		Main struct {
+			Kelvin float64 `json:"temp"`
+		} `json:"main"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&d); err != nil {
+		return 0, err
+	}
+
+	log.Printf("openWeatherMap: %s: %.2f", city, d.Main.Kelvin)
+	return d.Main.Kelvin, nil
 }
