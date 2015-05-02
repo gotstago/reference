@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"log"
 	"net/http"
@@ -26,7 +27,7 @@ func main() {
 		fmt.Fprintf(logFile, "%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
 		fmt.Fprintf(os.Stdout, "%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
 		//data, err := query(city)
-		data, err := openWeatherMap{}.temperature(city)
+		data, err := environmentCanada{}.temperature(city)
 		if err != nil {
 			fmt.Fprintf(logFile, "%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -71,6 +72,50 @@ type weatherData struct {
 
 type weatherProvider interface {
 	temperature(city string) (float64, error) // in Kelvin, naturally
+}
+
+type environmentCanada struct{}
+
+type XMLLink struct {
+	XMLName xml.Name `xml:"link"`
+	Type    string   `xml:"type,attr"`
+	Href    string   `xml:"href,attr"`
+}
+
+type XMLEntry struct {
+	XMLName xml.Name `xml:"entry"`
+	Title   string   `xml:"title"`
+	Link    XMLLink  `xml:"link"`
+}
+
+type XMLFeed struct {
+	XMLName xml.Name   `xml:"feed"`
+	Entries []XMLEntry `xml:"entry"`
+}
+
+func (w environmentCanada) temperature(city string) (float64, error) {
+	resp, err := http.Get("http://weather.gc.ca/rss/city/ns-31_e.xml")
+	if err != nil {
+		return 0, err
+	}
+
+	defer resp.Body.Close()
+	var xmlFeed = XMLFeed{}
+	/*var d struct {
+		Main struct {
+			Kelvin float64 `json:"temp"`
+		} `json:"main"`
+	}*/
+
+	if err := xml.NewDecoder(resp.Body).Decode(&xmlFeed); err != nil {
+		return 0, err
+	}
+	// Display The first strap
+	fmt.Printf("Title: %s  Link: %s", xmlFeed.Entries[0].Title, xmlFeed.Entries[0].Link.Href)
+	fmt.Printf("Title: %s  Link: %s", xmlFeed.Entries[0].Title, xmlFeed.Entries[0].Link.Href)
+
+	//log.Printf("environmentCanada: %s: %.2f", xmlFeeds, d.Main.Kelvin)
+	return 0, nil
 }
 
 type openWeatherMap struct{}
