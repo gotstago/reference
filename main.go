@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/gotstago/reference/handlers"
 	"log"
 	"net/http"
 	"os"
@@ -19,9 +20,10 @@ func main() {
 		log.Fatal("Log file create:", err)
 		return
 	}
-	fmt.Fprintf(logFile, "starting again\n")
+	helloHandler := new(handlers.HelloHandler)
+	fmt.Fprintf(logFile, "starting again here\n")
 	defer logFile.Close()
-	http.HandleFunc("/hello", hello)
+	http.HandleFunc("/hellos", helloHandler.ServeHTTP)
 	http.HandleFunc("/weather/", func(w http.ResponseWriter, r *http.Request) {
 		city := strings.SplitN(r.URL.Path, "/", 3)[2]
 		fmt.Fprintf(logFile, "%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
@@ -40,9 +42,22 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("hello!\n"))
-}
+/*type HelloHandler struct{}
+
+func (e HelloHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	sayParam := r.FormValue("say")
+
+	if sayParam == "Nothing" {
+		rw.WriteHeader(404)
+	} else {
+		//rw.Write([]byte(sayParam))
+		rw.Write([]byte("hello!\n"))
+	}
+}*/
+
+// func hello(w http.ResponseWriter, r *http.Request) {
+// 	w.Write([]byte("hello!\n"))
+// }
 
 func query(city string) (weatherData, error) {
 	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?q=" + city)
@@ -111,8 +126,8 @@ func (w environmentCanada) temperature(city string) (float64, error) {
 		return 0, err
 	}
 	// Display The first strap
-	fmt.Printf("Title: %s  Link: %s", xmlFeed.Entries[0].Title, xmlFeed.Entries[0].Link.Href)
-	fmt.Printf("Title: %s  Link: %s", xmlFeed.Entries[0].Title, xmlFeed.Entries[0].Link.Href)
+	fmt.Printf("Title: %s  Link: %s", xmlFeed.Entries[1].Title, xmlFeed.Entries[1].Link.Href)
+	fmt.Printf("Title: %s  Link: %s", xmlFeed.Entries[1].Title, xmlFeed.Entries[1].Link.Href)
 
 	//log.Printf("environmentCanada: %s: %.2f", xmlFeeds, d.Main.Kelvin)
 	return 0, nil
