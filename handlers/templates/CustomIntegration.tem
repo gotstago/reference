@@ -1,0 +1,277 @@
+package com.datacert.apps.mattermanagement.integration;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.text.*;
+import org.apache.log4j.Level;
+import java.sql.Timestamp;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
+import com.datacert.core.api.Services;
+import com.datacert.core.entity.service.IEntityService;
+import com.datacert.core.util.Logger;
+import org.apache.commons.collections.map.MultiValueMap;
+
+
+/**
+ * Main class
+ *
+ * @version 1.0 
+ *
+ */
+@Component
+public class CustomBetaSync extends SimpleIntegration 
+	implements GroovyInterceptable, ApplicationContextAware{
+
+	/**	Passport services */
+	@Autowired
+	private Services services
+	/** entity services */
+	@Autowired
+	private IEntityService entityService;
+	/** application context */
+	private ApplicationContext applicationContext;	
+	def failedList = new ArrayList<String>();
+	def skippedList = new ArrayList<String>();
+	
+	
+	/**
+	 * default construct
+	 */
+	public CustomBetaSync(){
+	}
+
+	public boolean initialize(){
+		logger.debug('calling initialize...');
+		def retVal = true
+		totalRecordCount = 0;
+		successRecordCount = 0;
+		failedRecordCount = 0;
+		integrationService = services.util.getCustomService("IntegrationServices");
+		currentIntegration = services.search.query("IntegrationInstance", services.search.property("id").eq(currentIntegration.id)).first();
+	
+		return retVal
+	}
+	
+
+	/**
+	 * Validate input data.
+	 *
+	 * @param dataRow 	A row of record
+	 * @return 			Returns true if dataRow contains no errors; returns false otherwise
+	 */
+	public boolean validateData(def dataRow) {
+		logger.debug("Start of validateData");
+		def result = dataRow.value.'result';
+		if(result){
+			println("result is ${result}");
+		}else{
+			println("result is null - assuming search was successful");
+		}
+		List recordList = dataRow.value.'person';	
+		String errorMsg = "";
+		
+		def ssntin = recordList?.get(5);
+		println("ssntin is ${ssntin}");
+		
+		//log errors
+		if(errorMsg.length() > 0){
+			logger.error("DATA ERROR: " + errorMsg);
+			logger.debug("End of validateData");
+			return false;
+		}
+		logger.debug("End of validateData");
+		return true;	
+	}
+
+	
+	/**
+	 * Map input data to Person based on requirements. 
+	 * the parameter should never be null.
+	 *
+	 * @param dataRowValue 		A list for a row of record
+	 * @return 					A Map of arrays 
+	 */
+	public def transform(def dataRowValue) {
+		logger.debug("Start of Transform");
+		def map = new MultiValueMap<String, List<String>>();
+		List<String> dataList = new ArrayList<String>();
+		Map recordMap = dataRowValue;
+		recordMap.each{ k,v ->
+			if(k == 'person'){
+				processPerson(v,map)
+			}else if (k == 'accounts'){
+				processAccounts(v,map)
+			}
+		}
+		logger.debug(map.toString());
+		return map;
+	}
+		
+	def processPerson(List<String> data, def targetMap){
+		def targetPersonList;
+		def targetPersonAddressesList;
+		def targetPersonPhones;
+		def targetPersonHomePhone;
+		//expecting [FirstName-0,LastName-1,MiddleName-2,Salutation-3,Suffix-4,SSNTIN-5,HoldersBirthDate-6,HomePhone-7,BusinessPhone-8,AddressType-9,AddressLine1-10,AddressLine2-11,City-12,State-13,Zip-14] 
+		/*target - 	'Person':[FirstName,LastName,MiddleName,Salutation,Suffix,SSNTIN,'External - LPL Customer',HoldersBirthDate],
+					'Person.addresses':[SSNTIN,AddressLine1,AddressLine2,'Physical',City,State,Zip,'1'],
+					'Person.phones':[SSNTIN,BusinessPhone,'Work Phone']*/
+		def birthDate;
+		def birthDateValue = data.get(6);
+		if(birthDateValue != null && birthDateValue != ''){
+			try{
+				birthDate = Date.parse('yyyy-MM-dd hh:mm:ss.SSS', data.get(6).toString()).format('M/d/yyyy');
+			}catch(Exception e){
+				birthDate == null;
+			}
+		}else{
+			birthDate = null;
+		}
+		//def birthDate = Date.parse('M/d/yyyy', '3/22/1965').format('M/d/yyyy');
+		targetPersonList = [(String)data.get(0),(String)data.get(1),(String)data.get(2),(String)data.get(3),(String)data.get(4),(String)data.get(5),'CustomerExternal',birthDate];//tt5996 - am
+		targetPersonAddressesList = [(String)data.get(5),(String)data.get(10),(String)data.get(11),'Physical',(String)data.get(12),(String)data.get(13),(String)data.get(14),'1'];
+		targetPersonPhones = [(String)data.get(5),(String)data.get(8),'Work Phone','1'];
+		targetPersonHomePhone = [(String)data.get(5),(String)data.get(7),'Home Phone','0'];
+		targetMap.put('Person',targetPersonList);
+		targetMap.put('Person.addresses',targetPersonAddressesList);
+		targetMap.put('Person.phones.work',targetPersonPhones);
+		targetMap.put('Person.phones.home',targetPersonHomePhone);
+	}
+
+	def processAccounts(def data, def targetMap){
+		data.each{ account ->
+			processAccount(account,targetMap); 
+		}
+		
+	}
+
+	def processAccount(List<String> data, def targetMap){
+		def targetPersonAccount;
+		//String ssntin = data.get(0);
+		//expecting [SSNTIN-0, AccountNo-1, AccountDescription-2, InvestmentObjective-3, AccountStatus-4, LastChangeDate-5, AcctClass-6, AccountName-7] 
+		/*	target		'Person.grcPersonAccounts':[SSNTIN,AccountDescription,AccountName,AccountNo,'active',InvestmentObjective]*/
+		targetPersonAccount = [(String)data.get(0),(String)data.get(2),(String)data.get(7),(String)data.get(1),'active',(String)data.get(3)];
+		logger.debug('adding account :: ' + targetPersonAccount)
+		targetMap.put('Person.grcPersonAccounts',targetPersonAccount);
+	}
+
+	/**
+	 * Override getNextBatch() in SimpleIntegration 
+	 *
+	 * @return A Map of Map for all records
+	 */
+    public Map<String, Map<String, List<?>>> getNextBatch(){
+		if (currentIntegration.direction.code.equals("IN"))
+		{
+			def currentIntegrationDataProvider =  currentIntegration.providers.find{ it.providerType.code.equals("Data") && it.isPrimary }
+			def cMap = integrationService.getConfigurations(currentIntegrationDataProvider)
+			def customSsnOrTaxIdValue = services.request.getBoundValue('customSsnOrTaxId')//from MatterPerson
+			def customAccountSearchValue = services.request.getBoundValue('customAccountNumber')//from MatterPerson
+			if(customSsnOrTaxIdValue != null && customSsnOrTaxIdValue != ''){
+				//search web service by “SSNTIN” as the SearchBy value
+				logger.debug('searchBy will be ' + customSsnOrTaxIdValue);
+				//searchBetaBySsntin(customSsnOrTaxIdValue)
+				cMap.put('SearchBy','SSNTIN')
+				cMap.put('SearchValue',customSsnOrTaxIdValue)
+			}
+			else if(customAccountSearchValue != null && customAccountSearchValue != ''){
+				//search web service by “ACCOUNTNO” as the SearchBy value
+				logger.debug('searchBy will be ' + customAccountSearchValue);
+				cMap.put('SearchBy','ACCOUNTNO')
+				cMap.put('SearchValue',customAccountSearchValue)
+			}
+			configMap.put(currentIntegrationDataProvider.name, cMap);
+			def dataProvider = Class.forName("com.datacert.apps.mattermanagement.integration."+currentIntegrationDataProvider.implementationClass, true, this.class.classLoader).getConstructor(Logger, long, Map).newInstance(logger,0,cMap);
+
+			try {
+			  if(dataProvider.initialize()) {
+					def dataMap = new HashMap<String, List<String>>();
+					def result = dataProvider.getNextBatch();
+					if(result == null || result.'result' != null || result.size() == 0){
+						return result;
+					}
+					result.each(){//am - changed to result so provider is not called twice
+						totalRecordCount++
+						if ( validateData(it) == true ) {
+							logger.debug("record ${it.key} is ${it.value}")
+							dataMap.put(it.key,transform(it.value))
+							successRecordCount++;
+						}
+						else {
+							failedRecordCount++;
+							dataMap.put('validation','Record failed validation.');
+						}
+					}
+					return dataMap;
+			  }
+			}
+			catch(Exception ex) {
+			  logger.error("Error:" + ex);
+			  return null;
+			}
+			finally {
+			  dataProvider.complete();
+			}
+		}
+		else {
+			return updatePostInformation(globalListIntegration);
+		}	
+	}
+
+	public def complete(){
+		def status=null;
+		def notificationStatus = false;
+		// if (failedList.contains(ftpError)){
+			// status = "Failed";
+		// }
+		if (totalRecordCount > 0 && totalRecordCount == successRecordCount) {
+		  status = "Successful"
+		}
+		else if (failedRecordCount > 0) {
+		  status = "Failed"
+		}
+		else{
+		   status = "Completed"
+		}
+		logger.info("Total Record Count:" + totalRecordCount);
+		logger.info("Success Record Count:"+ successRecordCount);
+		logger.info("Failed Record Count:" + failedRecordCount);
+		
+		if (status.equals("Failed")){
+			def emailMessage = "";
+			failedList.each{
+				emailMessage = emailMessage + it + "\n";
+			}
+			skippedList.each{
+				emailMessage = emailMessage + it + "\n";
+			}
+			
+			failedList = [];
+			skippedList = [];
+			
+			if (configurationMap.get("SendFailureNotification").value?.toString().equalsIgnoreCase("true")){
+				notificationStatus = sendNotification(configurationMap,emailMessage);
+			}
+			if (notificationStatus){
+				logger.info("Failure Notification sent successfully");
+			}			
+		}
+		
+		return status;
+	}
+	
+	//[LPL CODE]
+	/**
+	 * Set Application Context
+	 */
+	public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+}
