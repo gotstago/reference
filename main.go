@@ -20,9 +20,11 @@ func main() {
 		log.Fatal("Log file create:", err)
 		return
 	}
-	helloHandler := new(handlers.HelloHandler)
-	fmt.Fprintf(logFile, "starting again here\n")
 	defer logFile.Close()
+	helloHandler := new(handlers.HelloHandler)
+	getFileHandler := new(handlers.GetFileHandler)
+	fmt.Fprintf(logFile, "starting again here\n")
+	http.HandleFunc("/templates/provider/ftp", getFileHandler.ServeHTTP)
 	http.HandleFunc("/hellos", helloHandler.ServeHTTP)
 	http.HandleFunc("/weather/", func(w http.ResponseWriter, r *http.Request) {
 		city := strings.SplitN(r.URL.Path, "/", 3)[2]
