@@ -1,6 +1,6 @@
 package handlers
 
-import (
+/*import (
 	"net/http"
 	//"os"
 	"text/template"
@@ -9,14 +9,15 @@ import (
 type TextHandler struct{}
 
 func (e TextHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	/*sayParam := r.FormValue("say")
+	nameParam := r.FormValue("name")
+	sayParam := r.FormValue("say")
 
 	if sayParam == "Nothing" {
 		rw.WriteHeader(404)
 	} else {
 		rw.Write([]byte(sayParam))
 		//rw.Write([]byte("hello!\n"))
-	}*/
+	}
 
 	t, err := template.New("person").Parse(personTemplate)
 	if err != nil {
@@ -45,7 +46,7 @@ type Person struct {
 const personTemplate = `{{range .}}
 {{.FirstName}} {{.LastName}} is {{.Age}} years old.
 {{end}}`
-
+*/
 /*func main() {
 	t, err := template.New("person").Parse(personTemplate)
 	if err != nil {
