@@ -17,9 +17,20 @@ func (p *PlayingCard) String() string {
 	return fmt.Sprintf("%s of %s", p.Rank, p.Suit)
 }
 
-func TestSmallDeckToString(t *testing.T) {
+func TestSpecificDeck(t *testing.T) {
 	//d := deck.NewDeck(false)
 	d := deck.NewSpecificDeck(true, deck.FACES, []deck.Suit{deck.SPADE})
+	//d.cards = append(d.cards, deck.Card{ACE, HEART}, deck.Card{KING, HEART})
+	//result := fmt.Sprintf("%s", d)
+	t.Logf("Number of Cards is %d", d.NumberOfCards())
+	//assert.Equal(t, "A♥\nK♥\n", result, "These should be equal")
+}
+
+func TestTarabishSpecificDeck(t *testing.T) {
+	//d := deck.NewDeck(false)
+	d := deck.NewSpecificDeck(true,
+		[]deck.Face{deck.ACE, deck.KING, deck.QUEEN, deck.JACK, deck.TEN, deck.NINE, deck.EIGHT, deck.SEVEN, deck.SIX},
+		deck.SUITS)
 	//d.cards = append(d.cards, deck.Card{ACE, HEART}, deck.Card{KING, HEART})
 	//result := fmt.Sprintf("%s", d)
 	t.Logf("Number of Cards is %d", d.NumberOfCards())
