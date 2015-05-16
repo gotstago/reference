@@ -26,6 +26,37 @@ func TestSpecificDeck(t *testing.T) {
 	//assert.Equal(t, "A♥\nK♥\n", result, "These should be equal")
 }
 
+func TestPermutations(t *testing.T) {
+	faces := []deck.Face{deck.ACE, deck.KING, deck.QUEEN, deck.JACK, deck.TEN, deck.NINE, deck.EIGHT, deck.SEVEN, deck.SIX}
+	suits := deck.SUITS
+	cards := make([]deck.Card, len(suits)*len(faces))
+	for sindex, s := range suits {
+		for findex, f := range faces {
+			index := (sindex * len(faces)) + findex
+			cards[index] = deck.Card{f, s}
+		}
+	}
+	t.Logf("Number of Cards is %d", len(cards))
+	d := deck.Deck{cards}
+	//if shuffled {
+	d.Shuffle()
+	shuffledCards := d.Cards
+	t.Logf("Cards are %v", shuffledCards)
+	north := shuffledCards[0:3]
+	t.Logf("North Cards are %v, capacity is %d", north, cap(north))
+	east := shuffledCards[9:12]
+	t.Logf("East Cards are %v, capacity is %d", east, cap(east))
+	south := shuffledCards[18:21]
+	t.Logf("South Cards are %v, capacity is %d", south, cap(south))
+	west := shuffledCards[27:30]
+	t.Logf("West Cards are %v, capacity is %d", west, cap(west))
+	//http://stackoverflow.com/questions/25025409/delete-element-in-a-slice
+	west = append(west[:1], west[2:]...)
+	t.Logf("West Cards are %v, capacity is %d", west, cap(west))
+
+	//}
+}
+
 func TestTarabishSpecificDeck(t *testing.T) {
 	//d := deck.NewDeck(false)
 	d := deck.NewSpecificDeck(true,
@@ -33,7 +64,7 @@ func TestTarabishSpecificDeck(t *testing.T) {
 		deck.SUITS)
 	//d.cards = append(d.cards, deck.Card{ACE, HEART}, deck.Card{KING, HEART})
 	//result := fmt.Sprintf("%s", d)
-	t.Logf("Number of Cards is %d", d.NumberOfCards())
+	t.Logf("Number in Deck is %d", d.NumberOfCards())
 	//assert.Equal(t, "A♥\nK♥\n", result, "These should be equal")
 }
 
