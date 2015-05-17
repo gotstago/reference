@@ -51,10 +51,16 @@ func TestPermutations(t *testing.T) {
 	west := shuffledCards[27:30]
 	t.Logf("West Cards are %v, capacity is %d", west, cap(west))
 	//http://stackoverflow.com/questions/25025409/delete-element-in-a-slice
-	west = append(west[:1], west[2:]...)
+	//west = append(west[:1], west[2:]...)
+	west = remove(0, west)
 	t.Logf("West Cards are %v, capacity is %d", west, cap(west))
 
 	//}
+}
+
+func remove(element int, source []deck.Card) []deck.Card {
+	source = append(source[:element], source[element+1:]...)
+	return source
 }
 
 func TestTarabishSpecificDeck(t *testing.T) {
