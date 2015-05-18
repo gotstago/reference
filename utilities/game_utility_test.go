@@ -42,21 +42,27 @@ func TestPermutations(t *testing.T) {
 	d.Shuffle()
 	shuffledCards := d.Cards
 	t.Logf("Cards are %v", shuffledCards)
-	north := shuffledCards[0:3]
+	north := shuffledCards[0:2]
 	t.Logf("North Cards are %v, capacity is %d", north, cap(north))
-	east := shuffledCards[9:12]
+	east := shuffledCards[9:11]
 	t.Logf("East Cards are %v, capacity is %d", east, cap(east))
-	south := shuffledCards[18:21]
+	south := shuffledCards[18:20]
 	t.Logf("South Cards are %v, capacity is %d", south, cap(south))
-	west := shuffledCards[27:30]
+	west := shuffledCards[27:29]
 	t.Logf("West Cards are %v, capacity is %d", west, cap(west))
 	//http://stackoverflow.com/questions/25025409/delete-element-in-a-slice
 	//west = append(west[:1], west[2:]...)
-	west = remove(0, west)
-	t.Logf("West Cards are %v, capacity is %d", west, cap(west))
+	//west = remove(0, west)
+	//t.Logf("West Cards are %v, capacity is %d", west, cap(west))
 
 	allCardsInRound := [][]deck.Card{north, east, south, west}
 	t.Logf("all cards :: %v", allCardsInRound)
+
+	for combination := range GenerateAllCombinations(allCardsInRound) {
+		t.Log(combination) // This is instead of process(combination)
+	}
+
+	t.Log("Done!")
 	/*for _, h := range allCardsInRound {
 		for i, cell := range h {
 			t.Logf("card is %v at position %d", cell, i)
@@ -64,22 +70,62 @@ func TestPermutations(t *testing.T) {
 		t.Log("looping ...")
 	}*/
 
-	for i, h := range allCardsInRound {
-		/*for i, cell := range h {
-			t.Logf("card is %v at position %d", cell, i)
-		}*/
-		t.Logf("Length before removal of first is %d, capacity is %d", len(h), cap(h))
-		allCardsInRound[i] = remove(0, allCardsInRound[i])
-		//t.Logf("card is %v at position 0", h[0])
-		t.Logf("Length after removal of first is %d, capacity is %d", len(h), cap(h))
-		t.Log("looping ...")
-	}
-	t.Logf("all cards :: %v", allCardsInRound)
+	// for i, h := range allCardsInRound {
+	// 	/*for i, cell := range h {
+	// 		t.Logf("card is %v at position %d", cell, i)
+	// 	}*/
+	// 	t.Logf("Length before removal of first is %d, capacity is %d", len(h), cap(h))
+	// 	allCardsInRound[i] = remove(0, allCardsInRound[i])
+	// 	//t.Logf("card is %v at position 0", h[0])
+	// 	t.Logf("Length after removal of first is %d, capacity is %d", len(h), cap(h))
+	// 	t.Log("looping ...")
+	// }
+	// t.Logf("all cards :: %v", allCardsInRound)
 	//}
 }
 
 func playRound(nextCardToPlay int, allCards [][]deck.Card, currentResult []deck.Card) {
 
+}
+
+func GenerateAllCombinations(allCards [][]deck.Card) <-chan []deck.Card {
+	c := make(chan []deck.Card)
+
+	// Starting a separate goroutine that will create all the combinations,
+	// feeding them to the channel c
+	go func(c chan []deck.Card) {
+		defer close(c) // Once the iteration function is finished, we close the channel
+		playedHand := make([]deck.Card, 0)
+		NextPlay(c, 0, allCards, playedHand) // We start by feeding it 1st slice of cards
+	}(c)
+
+	return c // Return the channel to the calling function
+}
+
+// AddLetter adds a letter to the combination to create a new combination.
+// This new combination is passed on to the channel before we call AddLetter once again
+// to add yet another letter to the new combination in case length allows it
+func NextPlay(c chan []deck.Card, index int, hands [][]deck.Card, played []deck.Card) {
+	// Check if we reached the length limit
+	// If so, we just return without adding anything
+	if len(hands[index]) <= 0 { ///*|| len(played) == len(hands)*len(hands[0]*/
+		c <- played
+		return
+	}
+
+	//var newCombo string
+	for i, card := range hands[index] {
+		copyOfPlayed := append([]deck.Card(nil), played...)
+		copyOfPlayed = append(copyOfPlayed, card)
+		copyOfHands := append([][]deck.Card(nil), hands...)
+		copyOfHands[index] = remove(i, copyOfHands[index])
+		NextPlay(c, (index+1)%4, copyOfHands, copyOfPlayed)
+		// newCombo = combo + string(ch)
+		// if len(newCombo) == 4 {
+		// 	c <- newCombo
+		// }
+		// AddLetter(c, newCombo, alphabet, length-1)
+	}
 }
 
 //////////////////////////////
