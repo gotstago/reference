@@ -1,0 +1,71 @@
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello, playground")
+	north := []Card{Card{"ah"}, Card{"kh"}}
+	east := []Card{Card{"ac"}, Card{"kc"}}
+	south := []Card{Card{"ad"}, Card{"kd"}}
+	west := []Card{Card{"as"}, Card{"ks"}}
+
+	allCardsInRound := [][]Card{north, east, south, west}
+	
+	for combination := range GenerateAllCombinations(allCardsInRound) {
+		fmt.Println(combination) // This is instead of process(combination)
+	}
+}
+
+func GenerateAllCombinations(allCards [][]Card) <-chan []Card {
+	c := make(chan []Card)
+
+	// Starting a separate goroutine that will create all the combinations,
+	// feeding them to the channel c
+	go func(c chan []Card) {
+		defer close(c) // Once the iteration function is finished, we close the channel
+		playedHand := make([]Card, 0)
+		NextPlay(c, 0, allCards, playedHand,0) // We start by feeding it 1st slice of cards
+	}(c)
+
+	return c // Return the channel to the calling function
+}
+
+func NextPlay(c chan []Card, index int, hands [][]Card, played []Card, iteration int) {
+	fmt.Println("iteration",iteration)
+	// Check if we reached the length limit
+	// If so, we just return without adding anything
+	if len(hands[index]) == 0 { ///*|| len(played) == len(hands)*len(hands[0]*/
+		c <- played
+		//fmt.Println("index is",index)
+		return
+	}
+
+	//var newCombo string
+	for i, card := range hands[index] {
+		copyOfPlayed := append([]Card(nil), played...)
+		//fmt.Print("copyOfPlayed before is ",copyOfPlayed)
+		copyOfPlayed = append(copyOfPlayed, card)
+		//fmt.Println(" copyOfPlayed after is ",copyOfPlayed)
+		copyOfHands := append([][]Card(nil), hands...)
+		//fmt.Println("copyOfHands before is ",copyOfHands)
+		copyOfHands[index] = remove(i, copyOfHands[index])
+		//fmt.Println("copyOfHands after is ",copyOfHands)
+		NextPlay(c, (index+1)%4, copyOfHands, copyOfPlayed, iteration + 1)
+		// newCombo = combo + string(ch)
+		// if len(newCombo) == 4 {
+		// 	c <- newCombo
+		// }
+		// AddLetter(c, newCombo, alphabet, length-1)
+	}
+	
+}
+
+type Card struct{
+	name string
+}
+
+func remove(element int, source []Card) []Card {
+	source = append(source[:element], source[element+1:]...)
+	return source
+}
+
