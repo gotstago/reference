@@ -108,7 +108,7 @@ func GenerateAllCombinations(allCards [][]deck.Card) <-chan []deck.Card {
 func NextPlay(c chan []deck.Card, index int, hands [][]deck.Card, played []deck.Card) {
 	// Check if we reached the length limit
 	// If so, we just return without adding anything
-	if len(hands[index]) <= 0 { ///*|| len(played) == len(hands)*len(hands[0]*/
+	if len(hands[index]) == 1 { ///*|| len(played) == len(hands)*len(hands[0]*/
 		c <- played
 		return
 	}
