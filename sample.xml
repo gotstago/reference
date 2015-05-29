@@ -22,43 +22,43 @@ http://www.weather.gc.ca/build/theme-gcwu-fegc/images/favicon.ico
 </icon>
 <rights>Copyright 2015, Environment Canada</rights>
 <entry>
-<title>No watches or warnings in effect, Sydney</title>
-<link type="text/html" href="http://www.weather.gc.ca/warnings/index_e.html"/>
-<updated>2015-04-23T04:15:00Z</updated>
-<published>2015-04-23T04:15:00Z</published>
-<category term="Warnings and Watches"/>
-<summary type="html">No watches or warnings in effect.</summary>
-<id>
-tag:weather.gc.ca,2013-04-16:ns-31_w1:20150423041500
-</id>
+	<title>No watches or warnings in effect, Sydney</title>
+	<link type="text/html" href="http://www.weather.gc.ca/warnings/index_e.html"/>
+	<updated>2015-04-23T04:15:00Z</updated>
+	<published>2015-04-23T04:15:00Z</published>
+	<category term="Warnings and Watches"/>
+	<summary type="html">No watches or warnings in effect.</summary>
+	<id>
+	tag:weather.gc.ca,2013-04-16:ns-31_w1:20150423041500
+	</id>
 </entry>
 <entry>
-<title>Current Conditions: Mostly Cloudy, 7.8°C</title>
-<link type="text/html" href="http://www.weather.gc.ca/city/pages/ns-31_metric_e.html"/>
-<updated>2015-05-02T18:00:00Z</updated>
-<published>2015-05-02T18:00:00Z</published>
-<category term="Current Conditions"/>
-<summary type="html">
-<![CDATA[
-<b>Observed at:</b> J.A. Douglas McCurdy Sydney Airport 3:00 PM ADT Saturday 02 May 2015 <br/> <b>Condition:</b> Mostly Cloudy <br/> <b>Temperature:</b> 7.8&deg;C <br/> <b>Pressure / Tendency:</b> 101.7 kPa falling<br/> <b>Visibility:</b> 24.1 km<br/> <b>Humidity:</b> 62 %<br/> <b>Dewpoint:</b> 1.0&deg;C <br/> <b>Wind:</b> NE 17 km/h<br/> <b>Air Quality Health Index:</b> 2 <br/>
-]]>
-</summary>
-<id>
-tag:weather.gc.ca,2013-04-16:ns-31_cc:20150502180000
-</id>
+	<title>Current Conditions: Mostly Cloudy, 7.8°C</title>
+	<link type="text/html" href="http://www.weather.gc.ca/city/pages/ns-31_metric_e.html"/>
+	<updated>2015-05-02T18:00:00Z</updated>
+	<published>2015-05-02T18:00:00Z</published>
+	<category term="Current Conditions"/>
+	<summary type="html">
+	<![CDATA[
+	<b>Observed at:</b> J.A. Douglas McCurdy Sydney Airport 3:00 PM ADT Saturday 02 May 2015 <br/> <b>Condition:</b> Mostly Cloudy <br/> <b>Temperature:</b> 7.8&deg;C <br/> <b>Pressure / Tendency:</b> 101.7 kPa falling<br/> <b>Visibility:</b> 24.1 km<br/> <b>Humidity:</b> 62 %<br/> <b>Dewpoint:</b> 1.0&deg;C <br/> <b>Wind:</b> NE 17 km/h<br/> <b>Air Quality Health Index:</b> 2 <br/>
+	]]>
+	</summary>
+	<id>
+	tag:weather.gc.ca,2013-04-16:ns-31_cc:20150502180000
+	</id>
 </entry>
 <entry>
-<title>Saturday: Mainly cloudy. High 7.</title>
-<link type="text/html" href="http://www.weather.gc.ca/city/pages/ns-31_metric_e.html"/>
-<updated>2015-05-02T14:00:00Z</updated>
-<published>2015-05-02T14:00:00Z</published>
-<category term="Weather Forecasts"/>
-<summary type="html">
-Mainly cloudy. High 7. UV index 6 or high. Forecast issued 11:00 AM ADT Saturday 02 May 2015
-</summary>
-<id>
-tag:weather.gc.ca,2013-04-16:ns-31_fc1:20150502140000
-</id>
+	<title>Saturday: Mainly cloudy. High 7.</title>
+	<link type="text/html" href="http://www.weather.gc.ca/city/pages/ns-31_metric_e.html"/>
+	<updated>2015-05-02T14:00:00Z</updated>
+	<published>2015-05-02T14:00:00Z</published>
+	<category term="Weather Forecasts"/>
+	<summary type="html">
+	Mainly cloudy. High 7. UV index 6 or high. Forecast issued 11:00 AM ADT Saturday 02 May 2015
+	</summary>
+	<id>
+	tag:weather.gc.ca,2013-04-16:ns-31_fc1:20150502140000
+	</id>
 </entry>
 <entry>
 <title>

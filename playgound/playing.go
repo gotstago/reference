@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	//"os"
-	//"runtime"
+	"runtime"
 	//"strconv"
 	"sync"
 	"time"
@@ -17,15 +17,15 @@ var roundsPlayed = make(chan []Card)
 func main() {
 	//Parse command line arguments
 	//size, trials, err := parseArgs()
-
+	runtime.GOMAXPROCS(6)
 	rand.Seed(time.Now().Unix())
 	//Monte Carlo Everything
 	size := 10
 	trials := 30
-	northCards := []Card{Card{"ah"}, Card{"kh"}, Card{"qh"}, Card{"jh"}, Card{"th"}}
-	eastCards := []Card{Card{"ac"}, Card{"kc"}, Card{"qc"}, Card{"jc"}, Card{"tc"}}
-	southCards := []Card{Card{"ad"}, Card{"kd"}, Card{"qd"}, Card{"jd"}, Card{"td"}}
-	westCards := []Card{Card{"as"}, Card{"ks"}, Card{"qs"}, Card{"js"}, Card{"ts"}}
+	northCards := []Card{Card{"ah"}, Card{"kh"}, Card{"qh"}, Card{"jh"}} //, Card{"th"}}
+	eastCards := []Card{Card{"ac"}, Card{"kc"}, Card{"qc"}, Card{"jc"}}  //, Card{"tc"}}
+	southCards := []Card{Card{"ad"}, Card{"kd"}, Card{"qd"}, Card{"jd"}} //, Card{"td"}}
+	westCards := []Card{Card{"as"}, Card{"ks"}, Card{"qs"}, Card{"js"}}  //, Card{"ts"}}
 	players := []Player{Player{"north", northCards}, Player{"east", eastCards}, Player{"south", southCards}, Player{"west", westCards}}
 	probSorted(size, trials, players)
 	return
@@ -97,7 +97,7 @@ func probSorted(size, trials int, players []Player) {
 	//fmt.Printf("roundCopy after has these hands :: %v%v\n", roundCopy.CardsPlayed, roundCopy.Players)
 	//fmt.Printf("startingRound after has these hands :: %v%v\n", startingRound.CardsPlayed, startingRound.Players)
 
-	wg.Add(1)
+	//wg.Add(1)
 	go playRound(&startingRound)
 	// wg.Add(1)
 	// go playRound(&roundCopy)
@@ -126,21 +126,24 @@ func probSorted(size, trials int, players []Player) {
 }
 
 func playRound(round *Round) {
+	wg.Add(1)
 	defer wg.Done()
 	// lastPlayer := len(round.Players) - 1
 	//currentPlayer := round.Players[round.CurrentPosition]
+	//var tempRound Round
+	var currentHand []Card
 	for {
 		if round.Done() {
 			roundsPlayed <- round.CardsPlayed
 			return
 		}
 		//cardToPlay := 0
-		currentHand := round.Players[round.CurrentPosition].Hand
+		currentHand = round.Players[round.CurrentPosition].Hand
 		if len(currentHand) > 1 {
 			for i := 1; i < len(currentHand); i++ {
 				tempRound := round.CopyOf()
 				tempRound.playNextCard(i)
-				wg.Add(1)
+
 				go playRound(&tempRound)
 			}
 			// for i := range currentHand[1:]{
